@@ -1,0 +1,102 @@
+当然环境变量不是一定要安装的，只是方便我们在命令行操作
+
+等同于在cmd下 E:\soft4develop\mongodb\bin>
+
+执行如下命令
+
+mongod --install --dbpath e:\soft4develop\mongodb\data --logpath e:\soft4develop\logs\mongodb.log
+
+
+
+正常执行的话
+
+命令行会提示 all output going to: e:\mongodb\logs\mongodb.log
+
+简单介绍下上面命令
+
+--install就是往系统的服务面板里头写入服务项
+
+--dbpath 存放数据库的文件
+
+--logpath 存放日志文件
+
+当然可以通过serviceName 和serviceDisplayName来自定义服务名称 有兴趣的朋友可以自己试试
+
+ 
+
+敲地址 http://localhost:27017/
+
+You are trying to access MongoDB on the native driver port. For http diagnostic access, add 1000 to the port number
+http://localhost:28017/
+就可以看到mongodb的运行情况了。
+
+网络上的方法是在data目录将mongod.lock删除。可惜本人自己测试无法使用 只能通过Net start MongoDB来启动 才可以顺利开启mongodb
+
+还有就是如果配置错误 比如要换mogodb的位置
+
+那比较麻烦了
+
+提供一个命令
+
+mongodb  --dbpath e:\soft4develop\mongodb\data --logpath e:\soft4develop\logs\mongodb.log -remove
+
+当然也可以使用sc delete MongoDB来删除服务项
+
+最好还是在注册表去找mongo的选项，并一一删除 重启在重新安装
+
+
+
+后面又查看了资料 原先自己启动的方式很简单 直接mongod以为就可以启动Mongodb 原来不知还要指定dbpath
+
+C:\Documents and Settings\Administrator>mongod -dbpath=G:\tmall\mongodb-win32-i386-2.0.7\mongodb-win32-i386-2.0.7\data
+
+
+mongod -dbpath=e:\soft4develop\mongodb\data
+
+然后就可以顺利启动mongodb了
+
+
+
+
+
+mongod --install --dbpath G:\tmall\mongodb-win32-i386-2.0.7\mongodb-win32-i386-2.0.7\data --logpath G:\tmall\mongodb-win32-i386-2.0.7\mongodb-win32-i386-2.0.7\logs\mongodb.log
+mongod -dbpath=G:\tmall\mongodb-win32-i386-2.0.7\mongodb-win32-i386-2.0.7\data
+
+mongod --dbpath G:\tmall\mongodb-win32-i386-2.0.7\mongodb-win32-i386-2.0.7\data --journal 
+
+http://localhost:27017/
+
+mongod --dbpath G:\tmall\mongodb-win32-i386-2.0.7\mongodb-win32-i386-2.0.7\data --fork --logpath G:\tmall\mongodb-win32-i386-2.0.7\mongodb-win32-i386-2.0.7\logs\mongodb.log  --auth --httpinterface
+
+mongodb是一个文档型mosql数据库，它强大的功能在于查询，而且它存储数据的格式和我们平常用的json很相似。
+    
+1.创建一个库：mongodb创建一个库是用这个命令的：use 
+    
+比如我创建一个：use yc;
+    就创建了一个叫yc的数据库（可以使用db.help查看帮助）
+    
+2.一般数据库我们叫表，然后我们的mongodb叫集合，就是这玩意：collections,可以用
+show collections查看当前集合发现有一个默认的索引集合，如果不用创建集合的命令：
+db.createCollection("名字")，如果不创建直接插入会有自动创建一个默认的集合。如下：
+    
+3.插入数据：
+     
+db.yc.insert({"_id":1001,"name":"lmj","sex":"男"});就成功插入一条数据了。（没有创建集合的话它会默认帮你创建一个同名的和数据库名一样的集合）
+     
+4.查询全部数据：
+db.yc.find();
+     
+5.更新数据
+     
+db.yc.update({"_id":1001},{"name":"wbd","sex":"女"});
+     
+6.删除数据
+     db.yc.remove({"_id":1001});
+     
+嗯，是的，这是很简单的操作，革命未成功，继续学习。**
+--------------------- 
+journal文件在MongoDB中的作用相当于redo日志文件在oracle中的作用，它可以在即使服务器意外宕机的情况下，将数据库操作进行重演。
+默认情况下mongodb每100毫秒往journal文件中flush一次数据，不过这是在数据文件和journal文件处于同一磁盘卷上的情况，而如果数据文件和journal文件不在同一磁盘卷上时，默认刷新输出时间是30毫秒。不过这个毫秒值是可以修改的，可修改范围是2~300，值越低，刷新输出频率越高，数据安全度也就越高，但磁盘性能上的开销也更高。
+
+    journal文件是以“j._”开头命名的，且是append only的，如果1个journal文件满了1G大小，mongodb就会新创建一个journal文件来使用，一旦某个journal文件所记载的写操作都被使用过了，mongodb就会把这个journal文件删除。通常在journal文件所在的文件夹下，只会存在2~3个journal文件，除非你使用mongodb每秒都写入大量的数据。而使用 smallfiles 这个运行时选项可以将journal文件大小减至128M大小。
+mongod --dbpath=/data/server/mongodb/data --fork --logpath=/data/server/mongodb/logs --auth --httpinterface
